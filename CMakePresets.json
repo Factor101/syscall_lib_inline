@@ -12,11 +12,11 @@
               "CMAKE_CXX_COMPILER": "g++.exe",
               "CMAKE_CXX_FLAGS": "-masm=intel"
             },
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
+          "condition": {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+          }
         },
         {
             "name": "x64-debug",
