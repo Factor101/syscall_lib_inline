@@ -6,16 +6,16 @@ class Syscall
 {
 private:
 	void* baseAddress = nullptr;
-	DWORD expectedSSN = 0;
+	DWORD idxExportOrder = 0;
 	DWORD ssn = 0;
 
 public:
 	Syscall() = default;
 	Syscall(void* baseAddress,
-			const DWORD expectedSSN,
+			const DWORD idxExportOrder,
 			const DWORD ssn) :
 		baseAddress(baseAddress),
-		expectedSSN(expectedSSN),
+		idxExportOrder(idxExportOrder),
 		ssn(ssn)
 	{ }
 

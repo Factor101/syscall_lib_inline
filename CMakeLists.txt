@@ -10,6 +10,7 @@ if (POLICY CMP0141)
 endif()
 
 project(syscall_lib CXX)
+
 set(CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY
@@ -18,8 +19,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
   ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
   ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(ENV{PKG_CONFIG_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/include/capstone/lib/pkgconfig;$ENV{PKG_CONFIG_PATH}")
 
 # Include sub-projects.
 add_subdirectory("syscall_lib")
-add_subdirectory("include")
+
+include_directories("${CMAKE_SOURCE_DIR}/include/capstone/lib/cmake/capstone")
