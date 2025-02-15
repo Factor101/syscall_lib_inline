@@ -1,8 +1,10 @@
 #include "SyscallWalker.h"
-#include "capstone.h"
+#include <cinttypes>
+#include <cstdio>
+#include "capstone/capstone.h"
 
 LIST_ENTRY* SyscallWalker::pModuleListHead = nullptr;
-std::map<char*, Syscall> SyscallWalker::exportSysNumbers;
+std::map<std::string, Syscall> SyscallWalker::exportSysNumbers;
 
 const LDR_DATA_TABLE_ENTRY* SyscallWalker::getModuleEntry(const wchar_t* moduleName) noexcept
 {
@@ -87,6 +89,8 @@ void SyscallWalker::mapExports(const LDR_DATA_TABLE_ENTRY* baseAddr) noexcept
 }
 
 
+
+
 void SyscallWalker::init() noexcept
 {
 	//TODO: this should not be hardcoded OR compile time hashing
@@ -96,8 +100,64 @@ void SyscallWalker::init() noexcept
 	const LDR_DATA_TABLE_ENTRY* dllBaseAddress = SyscallWalker::getModuleEntry(moduleName);
 	if(dllBaseAddress != nullptr)
 	{
-		SyscallWalker::exportSysNumbers = std::map<char*, Syscall>();
+		SyscallWalker::exportSysNumbers = std::map<std::string, Syscall>();
 		SyscallWalker::mapExports(dllBaseAddress);
+
+
+
+		// find NtOpenFile
+		std::string targetFunction = "NtOpenFile";
+		auto it = SyscallWalker::exportSysNumbers.find(targetFunction);
+		uint8_t CODE[0x30] = { 0 };
+
+		if (it != SyscallWalker::exportSysNumbers.end())
+		{
+			Syscall syscall = it->second;
+			memcpy(CODE, (PBYTE)syscall.getBaseAddress(), 0x30);
+			printf("[+] Found %s: 0x%p\n", targetFunction.c_str(), syscall.getBaseAddress());
+		}
+		else
+		{
+			printf("[!] Failed to find %s\n", targetFunction.c_str());
+			// print all exports
+			for (const auto& pair : SyscallWalker::exportSysNumbers)
+			{
+				printf("[+] '%s': 0x%p\n", pair.first.c_str(), pair.second.getBaseAddress());
+			}
+		}
+
+
+
+		for (int i = 0; i < 0x30; i++)
+		{
+			//PBYTE pCurrentByte = (PBYTE)sys.getBaseAddress() + i;
+			
+		}
+
+
+		csh handle;
+		cs_insn* insn;
+
+		if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK)
+			printf("ERROR: Failed to initialize cs engine!\n");
+		// now only search first 30 bytes
+		size_t count = cs_disasm(handle, CODE, 0x30, 0x0, 30, &insn);
+		/*size_t count = cs_disasm(handle, CODE, sizeof(CODE) - 1, 0x0, 0, &insn);*/
+		if (count > 0) {
+			for (size_t j = 0; j < count; j++) {
+				printf("0x%" PRIx64 ":\t%s\t\t%s\n", insn[j].address, insn[j].mnemonic,
+					insn[j].op_str);
+			}
+
+			cs_free(insn, count);
+		}
+		else
+			printf("ERROR: Failed to disassemble given code!\n");
+
+		cs_close(&handle);
+
+
+
 	}
 	else
 	{

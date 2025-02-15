@@ -1,7 +1,7 @@
 {
   "ExtractionTool": 0,
   "AutomaticExtraction": true,
-  "CMakeCommandsFile": "",
+  "CMakeCommandsFile": "$(SolutionDir)out\\build\\x64-debug\\compile_commands.json",
   "AdditionalPreprocessorDefinitions": "",
   "AdditionalIncludeDirs": "",
   "AdditionalForceIncludes": "",

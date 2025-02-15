@@ -4,13 +4,15 @@
 #include <map>
 #include <intrin.h>
 #include <cstdio>
+#include <string>
+
 #include "../Syscall/Syscall.h"
 #define _DEBUG 1
 
 class SyscallWalker
 {
 private:
-	static std::map<char*, Syscall> exportSysNumbers;
+	static std::map<std::string, Syscall> exportSysNumbers;
 	static LIST_ENTRY* pModuleListHead;
 
 	static const LDR_DATA_TABLE_ENTRY* getModuleEntry(const wchar_t* moduleName) noexcept;

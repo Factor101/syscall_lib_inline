@@ -2,16 +2,21 @@
 # project specific logic here.
 #
 cmake_minimum_required(VERSION 3.8)
+project(syscall_lib)
+set(ENV{PKG_CONFIG_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../include/capstone/lib/pkgconfig;$ENV{PKG_CONFIG_PATH}")
 
-# Create a library from the sources in the syscall_lib folder
+include(FindPkgConfig)
+pkg_check_modules(CAPSTONE REQUIRED capstone)
+
+message(STATUS "CAPSTONE_LIBRARIES: ${CAPSTONE_LIBRARIES}")
+message(STATUS "CAPSTONE_INCLUDE_DIRS: ${CAPSTONE_INCLUDE_DIRS}")
+
 add_executable(syscall_lib
     "syscall_lib.cpp"
-    #"syscall_lib.h"
-    #"native.h"
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET syscall_lib PROPERTY CXX_STANDARD 20)
+  set_property(TARGET syscall_lib PROPERTY CXX_STANDARD 23)
 endif()
 
 # TODO: Add tests and install targets if needed.
@@ -22,8 +27,8 @@ add_subdirectory(SyscallWalker)
 # Optionally set include directories for this library
 target_include_directories(syscall_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CAPSTONE_INCLUDE_DIRS}
 )
 
-target_link_libraries(syscall_lib PRIVATE
-    capstone
-)
+target_link_directories(syscall_lib PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../include/capstone/lib")
+target_link_libraries(syscall_lib PRIVATE ${CAPSTONE_LIBRARIES})
