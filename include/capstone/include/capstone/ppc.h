@@ -221,8 +221,8 @@ inline static ppc_pred PPC_get_no_hint_pred(ppc_pred Code)
 /// Returns the hint encoded in the BO bits a and t.
 static inline ppc_br_hint PPC_get_hint(uint8_t bo)
 {
-	bool DecrCTR = (bo & PPC_BO_DECR_CTR) == 0;
-	bool TestCR = (bo & PPC_BO_TEST_CR) == 0;
+	const bool DecrCTR = (bo & PPC_BO_DECR_CTR) == 0;
+	const bool TestCR = (bo & PPC_BO_TEST_CR) == 0;
 	if (!DecrCTR && !TestCR)
 		return PPC_BR_NOT_GIVEN;
 	else if (DecrCTR && !TestCR)
@@ -242,15 +242,15 @@ static inline ppc_br_hint PPC_get_hint(uint8_t bo)
 static inline ppc_pred PPC_get_branch_pred(uint8_t bi, uint8_t bo,
 					   bool get_cr_pred)
 {
-	bool TestCR = ((bo & PPC_BO_TEST_CR) == 0);
-	bool DecrCTR = ((bo & PPC_BO_DECR_CTR) == 0);
+	const bool TestCR = ((bo & PPC_BO_TEST_CR) == 0);
+	const bool DecrCTR = ((bo & PPC_BO_DECR_CTR) == 0);
 
 	if ((get_cr_pred && !TestCR) || (!get_cr_pred && !DecrCTR))
 		return PPC_PRED_INVALID;
 
 	if (TestCR && DecrCTR) {
 		// The CR-bit condition without the CTR condition.
-		unsigned cr_bo_cond = (bo | PPC_BO_DECR_CTR) & ~PPC_BO_CTR_CMP;
+		const unsigned cr_bo_cond = (bo | PPC_BO_DECR_CTR) & ~PPC_BO_CTR_CMP;
 		// The CTR condition without the CR-bit condition.
 		unsigned ctr_bo_cond = (bo | PPC_BO_TEST_CR) & ~PPC_BO_CR_CMP;
 		if (get_cr_pred)
