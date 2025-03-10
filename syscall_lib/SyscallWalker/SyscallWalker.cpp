@@ -1,7 +1,7 @@
 #include "SyscallWalker.h"
 #include <cstdio>
 #ifdef _DEBUG
-#include "capstone/capstone.h"
+	#include "capstone/capstone.h"
 #endif
 
 LIST_ENTRY* SyscallWalker::pModuleListHead = nullptr;
@@ -93,10 +93,50 @@ void SyscallWalker::mapDllExports(const LDR_DATA_TABLE_ENTRY* baseAddr) noexcept
 
         PVOID pFunctionBase = (PVOID)((DWORD_PTR)baseAddr + pAddressOfFunctionsRVA[pAddressOfNameOrdinalsRVA[i]]);
 
-        // module export function to SyscallWorker::exportSysNumbers
-        //TODO: Add runtime hashing for pFunctionName
-        SyscallWalker::exportSysNumbers[pFunctionName] = { pFunctionBase, i, 0 };
-        _DEBUG_PRINTF("[+] Found Export #%d: \"%s\": 0x%p\n", i, pFunctionName, pFunctionBase);
-    }
-    _DEBUG_PRINTF("[+] Exported Functions: %d\n", pExportDir->NumberOfFunctions);
+		// module export function to SyscallWorker::exportSysNumbers
+		//TODO: Add runtime hashing for pFunctionName
+		SyscallWalker::exportSysNumbers[pFunctionName] = {pFunctionBase, i, 0};
+		_DEBUG_PRINTF("[+] Found Export \"%s\": 0x%p\n", pFunctionName, pFunctionBase);
+	}
+}
+
+
+void SyscallWalker::init() noexcept
+{
+	//TODO: this should not be hardcoded OR compile time hashing
+	constexpr auto moduleName = L"ntdll.dll";
+
+	SyscallWalker::loadModuleListHead();
+	if (const LDR_DATA_TABLE_ENTRY* dllBaseAddress = SyscallWalker::getModuleEntry(moduleName);
+		dllBaseAddress != nullptr)
+	{
+		SyscallWalker::exportSysNumbers = std::map<std::string, Syscall>();
+		SyscallWalker::mapExports(dllBaseAddress);
+
+
+		// find NtOpenFile
+		const std::string targetFunction = "NtOpenFile";
+		const auto it = SyscallWalker::exportSysNumbers.find(targetFunction);
+		uint8_t CODE[0x30] = {0};
+
+		if (it != SyscallWalker::exportSysNumbers.end())
+		{
+			const Syscall syscall = it->second;
+			memcpy(CODE, (PBYTE)syscall.getBaseAddress(), 0x30);
+			_DEBUG_PRINTF("[+] Found %s: 0x%p\n", targetFunction.c_str(), syscall.getBaseAddress());
+		}
+		else
+		{
+			_DEBUG_PRINTF("[!] Failed to find %s\n", targetFunction.c_str());
+			// print all exports
+			for (const auto& [fnName, v] : SyscallWalker::exportSysNumbers)
+			{
+				_DEBUG_PRINTF("[+] '%s': 0x%p\n", fnName.c_str(), v.getBaseAddress());
+			}
+		}
+	}
+	else
+	{
+		_DEBUG_PRINTF("Failed to find base address of module entry '%ls'\n", moduleName);
+	}
 }
